@@ -1,24 +1,8 @@
-/**
- * SkyCast Weather App — app.js
- * Uses OpenWeatherMap API
- * 
- * Features:
- *  - Search by city name
- *  - Geolocation-based weather
- *  - Recently searched cities (localStorage)
- *  - 5-day forecast
- *  - °C / °F toggle (today only)
- *  - Dynamic background based on weather condition
- *  - Extreme heat alerts (>40°C)
- *  - Graceful error handling with custom popup
- */
 
-/* =============================================
-   CONFIGURATION
-   ============================================= */
 
-// Replace with your OpenWeatherMap API key
-// Free key at: https://openweathermap.org/api
+
+//  OpenWeatherMap API key
+
 const API_KEY = 'YOUR_API_KEY_HERE';
 const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 const MAX_RECENT = 6; // Maximum recent cities stored

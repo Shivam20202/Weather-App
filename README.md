@@ -4,6 +4,10 @@ A clean, responsive weather app built with HTML, Tailwind CSS, vanilla CSS, and 
 
 ---
 
+# GitHub Link
+
+https://github.com/Shivam20202/Weather-App
+
 ## Features
 
 - **City search** — find weather for any city worldwide
