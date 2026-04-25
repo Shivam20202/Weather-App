@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkyCast — Weather Forecast</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%2338bdf8'/><path d='M35 50a15 15 0 1030 0 15 15 0 0030 0' fill='none' stroke='%230b0f1a' stroke-width='4'/><line x1='65' y1='65' x2='80' y2='80' stroke='%230b0f1a' stroke-width='4' stroke-linecap='round'/></svg>" />
+
+  <!-- Tailwind Config -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body: ['DM Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="font-body min-h-screen transition-all duration-700" id="app-body">
+
+  <!-- Background layers -->
+  <div class="bg-layer" id="bg-layer"></div>
+  <div class="bg-overlay"></div>
+
+  <!-- Custom Alert/Error Popup -->
+  <div id="popup-container" class="popup-container hidden">
+    <div class="popup-box" id="popup-box">
+      <div class="popup-icon" id="popup-icon">⚠️</div>
+      <p class="popup-message" id="popup-message">An error occurred.</p>
+      <button class="popup-close" onclick="closePopup()">Dismiss</button>
+    </div>
+  </div>
+
+  <!-- Heat Alert Banner -->
+  <div id="heat-alert" class="heat-alert hidden">
+    <span>🔥</span>
+    <span id="heat-alert-text">Extreme heat warning! Temperature above 40°C.</span>
+    <button onclick="document.getElementById('heat-alert').classList.add('hidden')" class="ml-4 underline text-sm">Dismiss</button>
+  </div>
+
+  <!-- Main App Container -->
+  <div class="app-shell">
+
+    <!-- ===== HEADER ===== -->
+    <header class="app-header">
+      <div class="logo">
+        <span class="logo-icon">🌤</span>
+        <span class="logo-text font-display">SkyCast</span>
+      </div>
+      <p class="tagline font-body">Your personal sky companion</p>
+    </header>
+
+    <!-- ===== SEARCH PANEL ===== -->
+    <section class="search-panel">
+
+      <!-- Search Input -->
+      <div class="search-wrapper" id="search-wrapper">
+        <div class="search-row">
+          <div class="input-group">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+            <input
+              type="text"
+              id="city-input"
+              class="city-input"
+              placeholder="Search city… e.g. Mumbai, Tokyo, Paris"
+              autocomplete="off"
+              aria-label="Enter city name"
+            />
+            <!-- Dropdown for recent searches -->
+            <ul id="recent-dropdown" class="recent-dropdown hidden" aria-label="Recently searched cities"></ul>
+          </div>
+          <button class="btn-search" id="search-btn" onclick="handleSearch()">
+            Search
+          </button>
+        </div>
+
+        <div class="divider-row">
+          <span class="divider-line"></span>
+          <span class="divider-text">or</span>
+          <span class="divider-line"></span>
+        </div>
+
+        <button class="btn-location" id="location-btn" onclick="handleCurrentLocation()">
+          <span>📍</span> Use My Current Location
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ===== WEATHER DISPLAY ===== -->
+    <section class="weather-display" id="weather-display" aria-live="polite">
+
+      <!-- Loading State -->
+      <div id="loading-state" class="loading-state hidden">
+        <div class="spinner"></div>
+        <p>Fetching skies…</p>
+      </div>
+
+      <!-- Empty State  -->
+      <div id="empty-state" class="empty-state">
+        <div class="empty-icon">🌍</div>
+        <p class="empty-title font-display">Search a city to get started</p>
+        <p class="empty-sub">Real-time weather & 5-day forecasts at your fingertips</p>
+      </div>
+
+      <!-- Current Weather Card -->
+      <div id="current-weather" class="current-weather hidden">
+        <div class="current-top">
+          <div class="current-left">
+            <h2 class="city-name font-display" id="cw-city">—</h2>
+            <p class="current-date" id="cw-date">—</p>
+            <p class="weather-desc" id="cw-desc">—</p>
+
+            <!-- Temperature with toggle -->
+            <div class="temp-row">
+              <span class="temp-value font-display" id="cw-temp">—</span>
+              <div class="unit-toggle">
+                <button class="unit-btn active" id="btn-c" onclick="setUnit('C')">°C</button>
+                <button class="unit-btn" id="btn-f" onclick="setUnit('F')">°F</button>
+              </div>
+            </div>
+          </div>
+          <div class="current-right">
+            <div class="weather-icon-large" id="cw-icon">🌤</div>
+            <p class="condition-label" id="cw-condition">—</p>
+          </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+          <div class="stat-chip">
+            <span class="stat-icon">💧</span>
+            <span class="stat-label">Humidity</span>
+            <span class="stat-value" id="cw-humidity">—</span>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-icon">💨</span>
+            <span class="stat-label">Wind</span>
+            <span class="stat-value" id="cw-wind">—</span>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-icon">👁️</span>
+            <span class="stat-label">Visibility</span>
+            <span class="stat-value" id="cw-visibility">—</span>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-icon">🌡️</span>
+            <span class="stat-label">Feels Like</span>
+            <span class="stat-value" id="cw-feels">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5-Day Forecast -->
+      <div id="forecast-section" class="forecast-section hidden">
+        <h3 class="forecast-title font-display">5-Day Forecast</h3>
+        <div class="forecast-grid" id="forecast-grid">
+          <!-- Forecast cards inserted by JS -->
+        </div>
+      </div>
+
+    </section>
+
+  </div><!-- /app-shell -->
+
+  <script src="app.js"></script>
+</body>
+</html>
